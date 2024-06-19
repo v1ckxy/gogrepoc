@@ -230,7 +230,7 @@ Optional
 * dbus-python and required dependencies (*nix, optional, used to prevent suspend/sleep interrupts on *nix, where supported) (this will likely move to pydbus as it matures)
 Mac:
 * caffeinate support (optional, required to prevent suspend/sleep interrupts)
-
+* dateutils ( py-dateutils on pip )  (required but only for python < 3.7 )
 
 TODO
 ----
