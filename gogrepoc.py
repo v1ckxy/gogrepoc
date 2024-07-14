@@ -2650,7 +2650,7 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
             try:
                 _ = game_item.force_change
             except AttributeError:
-                game_item.foce_change = False
+                game_item.force_change = False
                 
             try:
                 _ = game_item.updated
