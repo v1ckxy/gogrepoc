@@ -559,29 +559,37 @@ def save_manifest(items,filepath=MANIFEST_FILENAME,update_md5_xml=False,delete_m
                                                     for game_item in os_game_items:
                                                         if game_item.lang not in langs:
                                                             langs.append(game_item.lang)
-                                                    for cur_dir_file in os.listdir(cur_fulldir3):
-                                                        if os.path.isdir(os.path.join(cur_fulldir3,cur_dir_file)):
-                                                            if cur_dir_file not in langs:
-                                                                info("Removing incorrect subdirectory " + os.path.join(cur_fulldir3,cur_dir_file))
-                                                                shutil.rmtree(os.path.join(cur_fulldir3, cur_dir_file)) 
-                                                            else:
-                                                                cur_fulldir4 = os.path.join(cur_fulldir3,cur_dir_file)
-                                                                lang_os_game_items = [x for x in all_items_by_title[cur_dir].downloads if x.lang == cur_dir_file]
-                                                                for cur_dir_file in os.listdir(cur_fulldir4):
-                                                                    expected_filenames = []
-                                                                    for game_item in lang_os_game_items:
-                                                                        expected_filenames.append(game_item.name + ".xml")
-                                                                    for cur_dir_file in os.listdir(cur_fulldir4):
-                                                                        if os.path.isdir(os.path.join(cur_fulldir4, cur_dir_file)):
-                                                                            info("Removing subdirectory(?!) " + os.path.join(downloadingdir, cur_dir, cur_dir_file))                    
-                                                                            shutil.rmtree(os.path.join(cur_fulldir4, cur_dir_file)) #There shouldn't be subdirectories here ?? Nuke to keep clean.
-                                                                        else: 
-                                                                            if cur_dir_file not in expected_filenames:
-                                                                                info("Removing outdated file " + os.path.join(cur_fulldir4, cur_dir_file))    
-                                                                                os.remove(os.path.join(cur_fulldir4, cur_dir_file))
+                                                for cur_dir_file in os.listdir(cur_fulldir3):
+                                                    if os.path.isdir(os.path.join(cur_fulldir3,cur_dir_file)):
+                                                        if cur_dir_file not in langs:
+                                                            info("Removing incorrect subdirectory " + os.path.join(cur_fulldir3,cur_dir_file))
+                                                            shutil.rmtree(os.path.join(cur_fulldir3, cur_dir_file)) 
                                                         else:
-                                                            info("Removing invalid file " + os.path.join(cur_fulldir3, cur_dir_file))
-                                                            os.remove(os.path.join(cur_fulldir3, cur_dir_file))
+                                                            cur_fulldir4 = os.path.join(cur_fulldir3,cur_dir_file)
+                                                            lang_os_game_items = [x for x in os_game_items if x.lang == cur_dir_file]
+                                                            #if cur_fulldir4 == "!md5_xmls\\offworld_trading_company_game\\downloads\\mac\\English":
+                                                                #warn(lang_os_game_items)
+                                                            expected_filenames = []
+                                                            for game_item in lang_os_game_items:
+                                                                #info(game_item.name)
+                                                                #info(game_item)
+                                                                if ( game_item.name is None ):
+                                                                    warn("Game item has OS and Lang but no name in game associated with " + cur_fulldir4)
+                                                                if ( game_item.name is not None ):
+                                                                    expected_filenames.append(game_item.name + ".xml")                                                                
+                                                            for cur_dir_file in os.listdir(cur_fulldir4):
+                                                                
+                                                                for cur_dir_file in os.listdir(cur_fulldir4):
+                                                                    if os.path.isdir(os.path.join(cur_fulldir4, cur_dir_file)):
+                                                                        info("Removing subdirectory(?!) " + os.path.join(downloadingdir, cur_dir, cur_dir_file))                    
+                                                                        shutil.rmtree(os.path.join(cur_fulldir4, cur_dir_file)) #There shouldn't be subdirectories here ?? Nuke to keep clean.
+                                                                    else: 
+                                                                        if cur_dir_file not in expected_filenames:
+                                                                            info("Removing outdated file " + os.path.join(cur_fulldir4, cur_dir_file))    
+                                                                            os.remove(os.path.join(cur_fulldir4, cur_dir_file))
+                                                    else:
+                                                        info("Removing invalid file " + os.path.join(cur_fulldir3, cur_dir_file))
+                                                        os.remove(os.path.join(cur_fulldir3, cur_dir_file))
                                         else:
                                             info("Removing invalid file " + os.path.join(cur_fulldir2, cur_dir_file))
                                             os.remove(os.path.join(cur_fulldir2, cur_dir_file))
@@ -605,18 +613,26 @@ def save_manifest(items,filepath=MANIFEST_FILENAME,update_md5_xml=False,delete_m
                 ffdir = os.path.join(fname,"downloads",download.os_type,download.lang)
                 if not os.path.isdir(ffdir):
                     os.makedirs(ffdir)
-                ffname = os.path.join(ffdir,download.name + ".xml")
-                #rffname = os.path.join(".",ffname)
-                try:
-                    text = download.gog_data.md5_xml.text
-                    #existing_md5s.append(ffname)
-                    if (update_md5_xml):
-                        with ConditionalWriter(ffname) as fd_xml:
-                            fd_xml.write(text)
-                    if (delete_md5_xml):
-                        del download.gog_data.md5_xml["text"]
-                except AttributeError:
-                    pass
+                if (download.name is None):
+                    try:
+                        text = download.gog_data.md5_xml.text
+                        if text is not None and text != "":
+                            warn("Download item with MD5 XML Data but without a filename exists in manifest")
+                    except AttributeError:
+                        pass
+                if (download.name is not None):
+                    ffname = os.path.join(ffdir,download.name + ".xml")
+                    #rffname = os.path.join(".",ffname)
+                    try:
+                        text = download.gog_data.md5_xml.text
+                        #existing_md5s.append(ffname)
+                        if (update_md5_xml):
+                            with ConditionalWriter(ffname) as fd_xml:
+                                fd_xml.write(text)
+                        if (delete_md5_xml):
+                            del download.gog_data.md5_xml["text"]
+                    except AttributeError:
+                        pass
             #all_md5s = glob.glob()   Can't recursive glob before 3.5 so have to do this the hardway     
                     
     save_manifest_core(items,filepath)
@@ -2248,7 +2264,7 @@ def cmd_import(src_dir, dest_dir,os_list,lang_list,skipextras,skipids,ids,skipga
                         shutil.move(f, dest_file)
                     else:
                         shutil.copy(f, dest_file)
-                    entry = items(folder_name,file_name)
+                    entry = items[(folder_name,file_name)]
                     changed = False
                     try:
                         if entry.force_change == True:
