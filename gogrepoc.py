@@ -217,8 +217,9 @@ DEFAULT_LANG_LIST = [sysLang]
 SKIP_MD5_FILE_EXT = ['.txt', '.zip',''] #Removed tar.gz as it can have md5s and is actually parsed as .gz so wasn't working
 for i in range(1,21):
     n = i
-    a = "." + f'{n:03}'
+    a = "." + "%03d"%n
     SKIP_MD5_FILE_EXT.append(a)
+
 INSTALLERS_EXT = ['.exe','.bin','.dmg','.pkg','.sh']
 
 
@@ -227,7 +228,7 @@ DOWNLOADING_DIR_NAME = '!downloading'
 PROVISIONAL_DIR_NAME = '!provisional'
 IMAGES_DIR_NAME = '!images'
 
-ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME,DOWNLOADING_DIR_NAME,IMAGES_DIR_NAME, '!misc']
+ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME,DOWNLOADING_DIR_NAME,IMAGES_DIR_NAME, '!misc', '!md5_xmls']
 ORPHAN_FILE_EXCLUDE_LIST = [INFO_FILENAME, SERIAL_FILENAME]
 RESUME_SAVE_THRESHOLD = 50
 
@@ -1100,7 +1101,10 @@ def fetch_file_info(d, fetch_md5,save_md5_xml,updateSession):
         else:
             d.md5_exempt = True
     if d.updated == None:
-        d.raw_updated = d.gog_data.headers["Last-Modified"]
+        try:
+            d.raw_updated = d.gog_data.headers["Last-Modified"]
+        except KeyError:
+            d.raw_updated = d.gog_data.headers["last-modified"]
         if (sys.version_info[0] == 3 and sys.version_info[1] >= 3) or sys.version_info[0] >= 4 :
             d.updated = email.utils.parsedate_to_datetime(d.raw_updated).isoformat() #Standardize
         else:
@@ -1404,7 +1408,7 @@ def process_argv(argv):
     sp1 = p1.add_subparsers(help='command', dest='command', title='commands')
     sp1.required = True
 
-    g1 = sp1.add_parser('login', help='Login to GOG and save a local copy of your authenticated token')
+    g1 = sp1.add_parser('login', help='Login to GOG ( using a GOG or Galaxy Account only ) and save a local copy of your authenticated token')
     g1.add_argument('username', action='store', help='GOG username/email', nargs='?', default=None)
     g1.add_argument('password', action='store', help='GOG password', nargs='?', default=None)
     g1.add_argument('-nolog', action='store_true', help = 'doesn\'t writes log file gogrepo.log')
@@ -1616,6 +1620,8 @@ def cmd_login(user, passwd):
     
 
     # prompt for login/password if needed
+    if ( login_data['user'] is None ) or ( login_data['passwd'] ) is None:
+        print("You must use a GOG or GOG Galaxy account, Google/Discord sign-ins are not currently supported.")
     if login_data['user'] is None:
         login_data['user'] = input("Username: ")
     if login_data['passwd'] is None:
