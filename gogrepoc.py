@@ -975,26 +975,41 @@ def handle_game_updates(olditem, newitem,strict, update_downloads_strict, update
                 newDownload.force_change = candidate.force_change
             except AttributeError:
                 newDownload.force_change = False #An entry lacking force_change will also lack old_updated so this gets handled later 
+          
+            oldUpdateTime = None
+            updateTime = None
+            if sys.version_info[0] < 3: #requires external module
+                if newDownload.old_updated is not None:
+                    oldUpdateTime = dateutil.parser.isoparse(newDownload.old_updated) #requires external module
+                if newDownload.updated is not None:
+                    updateTime = dateutil.parser.isoparse(newDownload.updated) 
+            else: #Standardize #Only valid after 3.7 (this will always be in a datetime isoformat so the changes between 3.7 and 3.11 aren't relevant here)
+                if newDownload.old_updated is not None:
+                    oldUpdateTime = datetime.datetime.fromisoformat(newDownload.old_updated)
+                if newDownload.updated is not None:
+                    updateTime = datetime.datetime.fromisoformat(newDownload.updated)
+            newestUpdateTime = None
+            newer = False
+            if updateTime is None:
+                newer = True  #Treating this as definitive because it's probably a result of an item being removed
+            elif oldUpdateTime is None:
+                newestUpdateTime = newDownload.updated
+            elif updateTime > oldUpdateTime:
+                newer = True
+                newestUpdateTime = newDownload.updated
+            else:
+                newestUpdateTime = newDownload.old_updated
 
             if candidate.name != newDownload.name:
                 info('  -> in folder_name "{}" a download has changed name "{}" -> "{}"'.format(newitem.folder_name,candidate.name,newDownload.name))
                 newDownload.old_name  = candidate.name
             if (candidate.md5 != None and candidate.md5 == newDownload.md5 and candidate.size == newDownload.size) or ( newDownload.unreleased and candidate.unreleased ):
-                newDownload.old_updated = newDownload.updated #Not released or MD5s match , so whatever the update was it doesn't matter
-            elif update_downloads_strict: #shouldn't matter if updated is None in this section but preservign the logic for the stand alone function which may be dealing with a partially updated manifest
-                newer = False;
-                try:
-                    if sys.version_info[0] < 3: #requires external module
-                        oldUpdateTime = dateutil.parser.isoparse(newDownload.old_updated) #requires external module
-                        updateTime = dateutil.parser.isoparse(newDownload.updated) 
-                    else: #Standardize #Only valid after 3.7 (this will always be in a datetime isoformat so the changes between 3.7 and 3.11 aren't relevant here)
-                        oldUpdateTime = datetime.datetime.fromisoformat(newDownload.old_updated)
-                        updateTime = datetime.datetime.fromisoformat(newDownload.updated)
-                    if updateTime > oldUpdateTime:
-                        newer = True
-                except TypeError:
-                    pass
-                if newDownload.updated == None or newer:
+                #Not released or MD5s match , so whatever the update was it doesn't matter
+                newDownload.old_updated = newestUpdateTime
+                newDownload.updated =  newestUpdateTime
+            elif update_downloads_strict: 
+                newDownload.updated = newestUpdateTime #Don't forget our *newest* update time.
+                if newer:
                     info('  -> in folder_name "{}" a download "{}" has probably been updated (update date {} -> {}) and has been marked for change."'.format(newitem.folder_name,newDownload.name,newDownload.old_updated,newDownload.updated))
                     newDownload.force_change = True
         else:
@@ -1033,25 +1048,41 @@ def handle_game_updates(olditem, newitem,strict, update_downloads_strict, update
                 newExtra.old_updated = candidate.old_updated #Propogate until actually updated.
             except AttributeError:
                 newExtra.old_updated = None
+
+            oldUpdateTime = None
+            updateTime = None
+            if sys.version_info[0] < 3: #requires external module
+                if newExtra.old_updated is not None:
+                    oldUpdateTime = dateutil.parser.isoparse(newExtra.old_updated) #requires external module
+                if newExtra.updated is not None:
+                    updateTime = dateutil.parser.isoparse(newExtra.updated) 
+            else: #Standardize #Only valid after 3.7 (this will always be in a datetime isoformat so the changes between 3.7 and 3.11 aren't relevant here)
+                if newExtra.old_updated is not None:
+                    oldUpdateTime = datetime.datetime.fromisoformat(newExtra.old_updated)
+                if newExtra.updated is not None:
+                    updateTime = datetime.datetime.fromisoformat(newExtra.updated)
+            newestUpdateTime = None
+            newer = False
+            if updateTime is None:
+                newer = True  #Treating this as definitive because it's probably a result of an item being removed
+            elif oldUpdateTime is None:
+                newestUpdateTime = newExtra.updated
+            elif updateTime > oldUpdateTime:
+                newer = True
+                newestUpdateTime = newExtra.updated
+            else:
+                newestUpdateTime = newExtra.old_updated
+                
             if candidate.name != newExtra.name:
                 info('  -> in folder_name "{}" an extra has changed name "{}" -> "{}"'.format(newitem.folder_name,candidate.name,newExtra.name))
                 newExtra.old_name  = candidate.name
             if (candidate.md5 != None and candidate.md5 == newExtra.md5 and candidate.size == newExtra.size) or ( newExtra.unreleased and candidate.unreleased ):
-                newExtra.old_updated = newExtra.updated #MD5s match , so whatever the update was it doesn't matter
-            elif update_extras_strict and (newExtra.updated == None or ( newExtra.old_updated != newExtra.updated )): 
-                newer = False;
-                try:
-                    if sys.version_info[0] < 3: #requires external module
-                        oldUpdateTime = dateutil.parser.isoparse(newExtra.old_updated) #requires external module
-                        updateTime = dateutil.parser.isoparse(newExtra.updated ) 
-                    else: #Standardize #Only valid after 3.7 (this will always be in a datetime isoformat so the changes between 3.7 and 3.11 aren't relevant here)
-                        oldUpdateTime = datetime.datetime.fromisoformat(newExtra.old_updated)
-                        updateTime = datetime.datetime.fromisoformat(newExtra.updated )
-                    if updateTime > oldUpdateTime:
-                        newer = True
-                except TypeError:
-                    pass
-                if newExtra.updated == None or newer: #shouldn't matter if updated is None in this section but preserving the logic for the stand alone function which may be dealing with a partially updated manifest
+                #Not released or MD5s match , so whatever the update was it doesn't matter
+                newExtra.old_updated = newestUpdateTime
+                newExtra.updated =  newestUpdateTime
+            elif update_extras_strict: 
+                newExtra.updated = newestUpdateTime #Don't forget our *newest* update time.
+                if newer:
                     info('  -> in folder_name "{}" an extra "{}" has perhaps been updated (update date {} -> {}) and has been marked for change."'.format(newitem.folder_name,newExtra.name,newExtra.old_updated,newExtra.updated))
                     newExtra.force_change = True
         else:
@@ -3589,6 +3620,9 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
                 game_changed = True;
             
         
+            if itm.unreleased:
+                continue
+                
             if itm.name is None:
                 warn('no known filename for "%s (%s)"' % (game.title, itm.desc))
                 continue
