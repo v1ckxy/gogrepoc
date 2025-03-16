@@ -3662,10 +3662,13 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
                         bad_md5_cnt += 1
                         fail = True
                 if not fail and check_zips and itm.name.lower().endswith('.zip'): #Doesn't matter if it's a valid zip if size / MD5 are wrong, it's not the right zip
-                    if not test_zipfile(itm_file):
-                        info('zip test failed for %s' % itm_dirpath)
-                        bad_zip_cnt += 1
-                        fail = True
+                    try:
+                        if not test_zipfile(itm_file):
+                            info('zip test failed for ' % itm_dirpath)
+                            bad_zip_cnt += 1
+                            fail = True
+                    except NotImplementedError: #Temp work around until implement support
+                        warn('Unsupported file compression method, falling back to name/size check for %s' % itm_dirpath)
                 if delete_on_fail and fail:
                     info('deleting %s' % itm_dirpath)
                     os.remove(itm_file)
