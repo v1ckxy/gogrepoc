@@ -214,10 +214,13 @@ Other arguments:
 
 Requirements
 ------------
-* Python 2.7 / Python 3
+* Python 2.7 / Python 3.8+
 * html5lib 0.99999 or later (https://github.com/html5lib/html5lib-python)
 * requests
-* pyOpenSSL
+* pyutil
+Python 2.7 also requires
+* dateutil ( python-dateutil on pip )
+* pytz
 I recommend you use `pip` to install the above python modules.
 
   ``pip install html5lib html2text``
@@ -230,14 +233,14 @@ Optional
 * dbus-python and required dependencies (*nix, optional, used to prevent suspend/sleep interrupts on *nix, where supported) (this will likely move to pydbus as it matures)
 Mac:
 * caffeinate support (optional, required to prevent suspend/sleep interrupts)
-* dateutils ( py-dateutils on pip )  (required but only for python < 3.7 )
+
 
 TODO
 ----
 * ~~add ability to update and download specific games or new-items only~~
-* ~~add 'clean' command to orphan/remove old or unexpected files to keep your collection clean with only the latest files
-* support resuming manifest updating
+* ~~add 'clean' command to orphan/remove old or unexpected files to keep your collection clean with only the latest files~~
+* ~~support resuming manifest updating~~
 * ~~add support for incremental manifest updating (ie. only fetch newly added games) rather than fetching entire collection information~~
-* ability to customize/remap default game directory name
+* ~~ability to customize/remap default game directory name~~
 * add GOG movie support
 * ... feel free to contact me with ideas or feature requests!
