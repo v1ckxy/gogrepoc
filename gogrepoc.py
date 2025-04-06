@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
-
+# The following code block between #START# and #END#
+# generates an error message if this script is called as a shell script.
+# Using a "shebang" instead would fail on Windows.
+#START#
+if False:
+    print("Please start this script with a python interpreter: python /path/to/gogrepoc.py")
+#END#
 __appname__ = 'gogrepoc.py'
 __author__ = 'eddie3,kalaynr'
 __version__ = '0.4.0-a'
@@ -579,8 +584,7 @@ def save_manifest(items,filepath=MANIFEST_FILENAME,update_md5_xml=False,delete_m
                     if cur_dir not in all_items_by_title:
                         #ToDo: Maybe try to rename ? Content file names will probably change when renamed (and can't be recognised by md5s as partial downloads) so maybe not wortwhile ?     
                         info("Removing outdated directory " + cur_fulldir)
-                        if not dryrun:
-                            shutil.rmtree(cur_fulldir)                
+                        shutil.rmtree(cur_fulldir)                
                     else:
                         # dir is valid game folder, check its files
                         expected_dirnames = []
@@ -686,7 +690,8 @@ def save_manifest(items,filepath=MANIFEST_FILENAME,update_md5_xml=False,delete_m
 def save_manifest_core_worker(items,filepath,hasManifestPropsItem=False):
     tmp_path = filepath+TEMP_EXT
     bak_path = filepath+BACKUP_EXT
-    shutil.copy(filepath,tmp_path)
+    if os.path.exists(filepath):
+        shutil.copy(filepath,tmp_path)
     len_adjustment = 0
     if (hasManifestPropsItem):
         len_adjustment = -1
@@ -695,7 +700,8 @@ def save_manifest_core_worker(items,filepath,hasManifestPropsItem=False):
         pprint.pprint(items, width=123, stream=w)
     if os.path.exists(bak_path):
         os.remove(bak_path)
-    shutil.move(filepath,bak_path)
+    if os.path.exists(filepath):
+        shutil.move(filepath,bak_path)
     shutil.move(tmp_path,filepath)    
 
 
@@ -1263,7 +1269,8 @@ def filter_downloads(out_list, downloads_list, lang_list, os_list,save_md5_xml,u
                                              gog_data = AttrDict(),
                                              updated = None,
                                              old_updated = None,
-                                             force_change = False
+                                             force_change = False,
+                                             old_force_change = None
                                              )
                                 for key in download:
                                     try:
@@ -1348,7 +1355,9 @@ def filter_extras(out_list, extras_list,save_md5_xml,updateSession):
                              unreleased = False,
                              gog_data = AttrDict(),
                              updated = None,
-                             old_updated = None
+                             old_updated = None,
+                             force_change = False,
+                             old_force_change = None
                              )
                 for key in extra:
                     try:
@@ -3684,10 +3693,12 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
                 try:
                     old_force_change = itm.force_change
                 except AttributeError:
-                    old_force_change = None
+                    itm.force_change = False
+                    old_force_change = False
                 try:
                     old_last_updated = itm.old_updated
                 except AttributeError:
+                    itm.old_updated = None
                     old_last_updated = None
                 if not fail:
                     itm.prev_verified= True;
@@ -4159,7 +4170,8 @@ class Wakelock:
                 self._PMassertion = a
         if (not (platform.system() == "Windows" or platform.system() == "Darwin")) and  ('PyQt5.QtDBus' in sys.modules):
             self.inhibitor = self._get_inhibitor()
-            self.inhibitor.inhibit()
+            if (self.inhibitor != None):
+                self.inhibitor.inhibit()
         
     def release_wakelock(self):
         if platform.system() == "Windows":
