@@ -4017,9 +4017,6 @@ def main(args):
             args.downloadlimit = args.downloadlimit*1024.0*1024.0 #Convert to Bytes
         cmd_download(args.savedir, args.skipextras, args.skipids, args.dryrun, args.ids,args.os,args.lang,args.skipgalaxy,args.skipstandalone,args.skipshared, args.skipfiles,args.covers,args.backgrounds,args.skippreallocation,not args.nocleanimages,args.downloadlimit)
     elif args.command == 'import':
-        #Hardcode these as false since extras currently do not have MD5s as such skipgames would give nothing and skipextras would change nothing. The logic path and arguments are present in case this changes, though commented out in the case of arguments)
-        if args.clean:
-            warn("The -clean option is deprecated, as the default behaviour has been changed to clean files that fail the verification checks. -noclean now exists for leaving files in place. Please update your scripts accordingly. ")
         args.skipgames = False
         args.skipextras = False
         if not args.os:  
@@ -4038,6 +4035,9 @@ def main(args):
             args.skipshared = True
         cmd_import(args.src_dir, args.dest_dir,args.os,args.lang,args.skipextras,args.skipids,args.ids,args.skipgalaxy,args.skipstandalone,args.skipshared,False)
     elif args.command == 'verify':
+        #Hardcode these as false since extras currently do not have MD5s as such skipgames would give nothing and skipextras would change nothing. The logic path and arguments are present in case this changes, though commented out in the case of arguments)
+        if args.clean:
+            warn("The -clean option is deprecated, as the default behaviour has been changed to clean files that fail the verification checks. -noclean now exists for leaving files in place. Please update your scripts accordingly. ")
         if (args.id):
             args.ids = [args.id]    
         if not args.os:    
