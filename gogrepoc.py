@@ -969,6 +969,10 @@ def handle_game_updates(olditem, newitem,strict, update_downloads_strict, update
                         except AttributeError:
                             pass
         if candidate != None:
+            try: 
+                _ = candidate.unreleased
+            except AttributeError:
+                candidate.unreleased = False
             try:
                 newDownload.prev_verified = candidate.prev_verified         
             except AttributeError:
@@ -1042,6 +1046,10 @@ def handle_game_updates(olditem, newitem,strict, update_downloads_strict, update
                         except AttributeError:
                             pass
         if candidate != None:
+            try: 
+                _ = candidate.unreleased
+            except AttributeError:
+                candidate.unreleased = False
             try:
                 newExtra.prev_verified = candidate.prev_verified         
             except AttributeError:
@@ -2291,7 +2299,7 @@ def cmd_update(os_list, lang_list, skipknown, updateonly, partial, ids, skipids,
                 global_dupes.extend(dupes)
             
     for dupe in global_dupes:
-        dupe.folder_name = dupe.title + "_" + dupe.id
+        dupe.folder_name = dupe.title + "_" + str(dupe.id)
     #Store stuff in the DB in alphabetical order
     sorted_gamesdb =  sorted(gamesdb, key = lambda game : game.title)
     # save the manifest to disk
@@ -3408,7 +3416,7 @@ def cmd_download(savedir, skipextras,skipids, dryrun, ids,os_list, lang_list,ski
 def cmd_backup(src_dir, dest_dir,skipextras,os_list,lang_list,ids,skipids,skipgalaxy,skipstandalone,skipshared):
     gamesdb = load_manifest()
     
-    for game in games_db:
+    for game in gamesdb:
         try:
             _ = game.folder_name
         except AttributeError:
@@ -3628,6 +3636,10 @@ def cmd_verify(gamedir, skipextras, skipids,  check_md5, check_filesize, check_z
                 itm.prev_verified = False
                 game_changed = True;
             
+            try:
+                _ = itm.unreleased
+            except AttributeError:
+                itm.unreleased = False
         
             if itm.unreleased:
                 continue
