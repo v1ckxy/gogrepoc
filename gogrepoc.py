@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import division
@@ -45,7 +46,6 @@ import zlib
 from fnmatch import fnmatch
 import email.utils
 import signal
-import psutil
 minPy2 = [2,7]
 minPy3 = [3,8]
 
@@ -77,16 +77,18 @@ except ImportError:
     from itertools import zip_longest
     from io import StringIO
     
-if (platform.system() == "Windows"):
+if ((platform.system() == "Windows") or (platform.system().__contains__("CYGWIN_NT") )):
     import ctypes.wintypes
     
 if (platform.system() == "Darwin"):
     import CoreFoundation #import CFStringCreateWithCString, CFRelease, kCFStringEncodingASCII
     import objc #import pyobjc_id
+    import psutil
 
 if not ((platform.system() == "Darwin") or (platform.system() == "Windows")):
     try:
         import PyQt5.QtDBus
+        import psutil
     except ImportError:
         pass
     
